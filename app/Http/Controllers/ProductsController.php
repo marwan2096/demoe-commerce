@@ -23,10 +23,11 @@ class ProductsController extends Controller
      */
     public function index()
     {
-        return ProductsResource::collection(
-            Product::where('user_id', Auth::user()->id)->get()
+        return  ProductsResource::collection(
+            Product::all()
         );
     }
+    
     
 
 
@@ -41,7 +42,7 @@ class ProductsController extends Controller
         $request->validated($request->all());
 
         $product = Product::create([
-            'user_id' => Auth::user()->id,
+            // 'user_id' => Auth::user()->id,
             'name' => $request->name,
             'desc' => $request->desc,
             'price' => $request->price,
@@ -60,7 +61,7 @@ class ProductsController extends Controller
    
         public function show(Product $product)
     {
-        return $this->isNotAuthorized($product) ? $this->isNotAuthorized($product) : new ProductsResource($product);
+        return  new ProductsResource($product);
 
     }
 

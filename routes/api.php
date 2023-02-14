@@ -34,11 +34,11 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 // Public routes
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
-
+Route::resource('/products', ProductsController::class);
+Route::resource('/categories', CategoriesController::class);
 // Protected routes
 Route::group(['middleware' => ['auth:sanctum']], function () {
-    Route::resource('/products', ProductsController::class);
-    Route::resource('/categories', CategoriesController::class);
+  
     Route::post('/logout', [AuthController::class, 'logout']);
   
 });
