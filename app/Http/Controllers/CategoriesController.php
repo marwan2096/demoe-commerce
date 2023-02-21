@@ -53,55 +53,45 @@ class CategoriesController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-   
-        public function show(Category $Category)
+    public function show( Request $Category,$id)
     {
-        return  new CategoriesResource($Category);
+
+        $Category=Category::find($id);
+        return  new   CategoriesResource($Category);
 
     }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
     
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Category $Category)
+    public function update($id,Request $request)
     {
-        // if(Auth::user()->id !== $Category->user_id) {
-        //     return $this->error('', 'You are not authorized to make this request', 403);
-        // }
+        $Category=Category::find($id);
         $Category->update($request->all());
         return new CategoriesResource($Category);;
 
       
     }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Category $Category)
+   
+    public function destroy($id)
     {
-        return $this->isNotAuthorized($Category) ? $this->isNotAuthorized($Category) : $Category->delete();
+        $Category= Category::find($id );
+    
+        return  $Category->delete();
     }
-
-
-    private function isNotAuthorized($Category){
-
-        if(Auth::user()->id !== $Category->user_id) {
-            return $this->error('', 'You are not authorized to make this request', 403);
+   
+ 
+   
+    public function search($name)
+    {    
+       
+    
+        if ($name) {
+            return Category::where('name', $name)
+            ->orWhere('name',"like","$name%",$name)->
+            
+            orWhere('id',$name)->get();
+     
         }
+    
 
-
-    }
+     }
 
 }

@@ -2,13 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreProductRequest;
-
-use App\Http\Resources\ProductsResource;
 use App\Models\Product;
-use App\Traits\HttpResponses;
+
+use App\Models\Category;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Traits\HttpResponses;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Resources\ProductsResource;
+use App\Http\Requests\StoreProductRequest;
+use App\Http\Resources\CategoriesResource;
+use App\Http\Requests\StoreCategoriesRequest;
 
 
 
@@ -23,13 +27,13 @@ class ProductsController extends Controller
      */
     public function index()
     {
-        return  ProductsResource::collection(
-            Product::all()
-        );
+       
+        $product = Product::paginate();
+            return  ProductsResource::collection($product);
+   
     }
     
     
-
 
     /**
      * Store a newly created resource in storage.
@@ -40,6 +44,12 @@ class ProductsController extends Controller
     public function store( StoreProductRequest $request)
     {
         $request->validated($request->all());
+        //   image store  and validation
+       
+        $file=$request->file('image');
+        $name =Str::random(10);
+        $url=\Storage::putFileAs('image',$file,$name.'.'.$file->extension());
+
 
         $product = Product::create([
             // 'user_id' => Auth::user()->id,
@@ -47,8 +57,14 @@ class ProductsController extends Controller
             'desc' => $request->desc,
             'price' => $request->price,
            'category_id' =>$request->category_id,
-        ]);
+           'discount_id'=>$request->discount_id,
+           'inventory_id'=>$request->inventory_id,
+           'image' => $url,
+           'imagepath' => env('APP_URL').'/'.$url,
+            
 
+        ]);
+        
         return new ProductsResource($product);
     }
 
@@ -58,12 +74,18 @@ class ProductsController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-   
-        public function show(Product $product)
+    public function show( Request $product,$id)
     {
-        return  new ProductsResource($product);
+
+        $product=Product::find($id);
+        return  new   ProductsResource($product);
 
     }
+    //     public function show(Product $product)
+    // {
+    //     return  new ProductsResource($product);
+
+    // }
 
     /**
      * Show the form for editing the specified resource.
@@ -76,17 +98,48 @@ class ProductsController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Product $product)
-    {
-        if(Auth::user()->id !== $product->user_id) {
-            return $this->error('', 'You are not authorized to make this request', 403);
-        }
-        $product->update($request->all());
-        return new ProductsResource($product);;
+    //  */
+    // public function update(StoreProductRequest $request,$id)
+    // {
+    //     // $product = $request->validated($request->all());
+        
+    //     // if($request->hasFile('image')){
+    //     //         $this->deleteImage($product->image);
+    //     //         $validatedData['image']=$this->saveImage($request->file('image'));
+    //     //     };
+        
+
+
+    //     //     $product->update($validatedData);
+    //     //     $product =$product->refresh();
+    //     //     $product->image? $product->image =$product->image_url:'';
+    //     //     $product->image_url;
+
+    //     //     $product=Product::find($id);
+
+
+    //     $product->update($request->all());
+    //     return new ProductsResource($product);
 
       
-    }
+    //     }
+        public function update($id,Request $request)
+        {
+            $product=Product::find($id);
+            $product->update( [  'name' => $request->name,
+            'desc' => $request->desc,
+            'price' => $request->price,
+           'category_id' =>$request->category_id,
+           'discount_id'=>$request->discount_id,
+           'inventory_id'=>$request->inventory_id,
+        //    'image' => $url,
+        //    'imagepath' => env('APP_URL').'/'.$url,
+             ]);
+            $product->update($request->all());
+            return  new   ProductsResource($product);
+    
+          
+        }
 
     /**
      * Remove the specified resource from storage.
@@ -94,22 +147,79 @@ class ProductsController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Product $product)
+   
+    public function destroy($id)
     {
-        return $this->isNotAuthorized($product) ? $this->isNotAuthorized($product) : $product->delete();
+        $product= Product::find($id );
+    
+        return  $product->delete();
     }
+   
 
-
-    private function isNotAuthorized($product){
-
-        if(Auth::user()->id !== $product->user_id) {
-            return $this->error('', 'You are not authorized to make this request', 403);
+    public function search($name)
+    {    
+         
+            
+     if ($name) {
+           return Product::where('name', $name)
+        ->orWhere('name',"like","$name%",$name)->
+        
+        orWhere('category_id',$name)->orWhere('category_id',$name)->get();
+      
+     
         }
-
-
+    
     }
 
+     public function searchCategories($category){
+        return Product::join('product_categories', 'products.category_id', '=', 'product_categories.id')
+        ->where('product_categories.name', $category)
+        ->get();
+        
+        }
+    
+
+     }
+        
+    
+
+     
 
 
 
-}
+
+
+
+          
+        
+           
+    
+    //     if ($name) {
+    //        return Product::where('name', $name)
+    //     ->orWhere('name',"like","$name%",$name)->
+        
+    //     orWhere('category_id',$name)->orWhere('category_id',$name)->get();
+    //     $products = Product::whereHas('category', function($query) {
+    //         $query->where('name', '=', 'Category Name');
+    //     })->get();
+     
+    //     }
+    
+       
+    
+    //  
+
+
+   
+        
+ 
+      
+
+
+
+  
+
+
+
+
+

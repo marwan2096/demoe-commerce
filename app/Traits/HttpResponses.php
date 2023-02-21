@@ -2,6 +2,8 @@
 
 namespace App\Traits;
 
+use App\Traits\HttpResponses;
+
 trait HttpResponses {
     
     protected function success($data, string $message = null, int $code = 200)
